@@ -1,0 +1,208 @@
+---
+title: "Group_8_RMCS2"
+
+Yves HERI
+Donald YOMBI
+Geraldine BANDA
+Bonaventure KAGARURA
+Ferguson CHALUMBA
+Athanase HAFASHIMANA
+---
+
+## Importing LIBRARIES
+```{r}
+library(plotly)
+library(graphics)
+library(biwavelet)
+library(zoo)
+library(xtable)
+library(forecast)
+library(TSA)
+
+```
+
+## Data Preprocessing 
+
+```{r}
+Cape_Town 	<- read.csv("Cape_Town_2_Group8.csv")
+Data	<-  Cape_Town[,c(1,5)]
+head(Data)
+```
+##############
+### TASK 3 ###
+##############
+
+
+# Question 1 : Time series Plot of Precipitation and Temperature
+
+# Precipitation
+```{r}
+Pre <- ts(Data$PRED, start = c(1960,1), end = c(2010,12), frequency = 12)
+Temp <- ts(Data$TMPD, start = c(1960,1), end = c(2010,12), frequency = 12)
+plot(Pre, ylab = 'Precipitation', main = 'Time Series of Precipitation', col='black')
+lines(lowess(Pre,f=1/1),col='red')
+```
+# Save the plot
+```{r}
+png('Pre.png')
+plot(Pre, ylab = 'Precipitation', main = 'Time Series of Precipitation', col='black')
+lines(lowess(Pre,f=1/1),col='red')
+dev.off()
+```
+
+# Temperature
+```{r}
+plot(Temp, ylab = 'Temperature', main = 'Time Series of Temperature', col='black')
+lines(lowess(Temp,f=1/1),col="red")
+```
+# Save the plot
+```{r}
+png('Temp.png')
+plot(Temp, ylab = 'Temperature', main = 'Time Series of Temperature', col='black')
+lines(lowess(Temp,f=1/1),col="red")
+dev.off()
+```
+
+### Question 2 ###
+
+# De-trend the data
+```{r}
+PreD <- diff(Pre, differences = 1)
+TempD <- diff(Temp, differences = 1)
+PreD <- ts(PreD, start = c(1960,1), end = c(2010,12), frequency = 12)
+TempD <- ts(TempD , start = c(1960,1), end = c(2010,12), frequency = 12)
+```
+
+# Plot the de-trended data : Precipitation
+```{r}
+plot(PreD, ylab = 'Precipitation', main = 'Detrended Time Series  of Precipitation', col='black')
+lines(lowess(PreD,f=1/1),col="red")
+```
+# Save the plot
+```{r}
+png('Pre_Detrend.png')
+plot(PreD, ylab = 'Precipitation', main = 'Detrended Time Series  of Precipitation', col='black')
+lines(lowess(PreD,f=1/1),col="red")
+dev.off()
+```
+
+# Plot the de-trended data : Temperature
+```{r}
+plot(TempD, ylab = 'Temperature', main = 'Detrended Time Series of Temperature', col='black')
+lines(lowess(TempD,f=1/1),col="red")
+```
+# Save the plot
+```{r}
+png('Temp_Detrend.png')
+plot(TempD, ylab = 'Temperature', main = 'Detrended Time Series  of Temperature', col='black')
+lines(lowess(PreD,f=1/1),col="red")
+dev.off()
+```
+### Question 3 ####
+# Correlogram for Precipitation
+```{r}
+forecast::Acf(Pre, lag.max = 36, main = "Autocorrelation  for Precipitation ")
+```
+
+# Save the plot
+```{r}
+png('AutoCorr_Pre.png')
+forecast::Acf(Pre, lag.max = 36, main = "Autocorrelation  for Precipitation ")
+dev.off()
+```
+
+# Correlogram for Temperature
+```{r}
+forecast::Acf(Temp, lag.max = 36, main = "Autocorrelation  for Temperature")
+```
+# Save the plot
+```{r}
+png('AutoCorr_Temp.png')
+forecast::Acf(Temp, lag.max = 36, main = "Autocorrelation  for Temperature")
+dev.off()
+```
+
+```{r}
+forecast::Acf(PreD, lag.max = 36, main = "Autocorrelation  for Detrended Precipitation Series")
+```
+
+
+```{r}
+forecast::Acf(TempD, lag.max = 36, main = "Autocorrelation  for Detrended Temperature Series")
+```
+# Question 4 : Cross-correlation between Precipitation and Temperature
+
+```{r}
+forecast::Ccf(Pre,Temp)
+```
+# Save the plot
+```{r}
+png('Cross_corr.png')
+forecast::Ccf(Pre,Temp)
+dev.off()
+```
+##############
+### TASK 4 ###
+##############
+
+
+## Question 1 : Find the periodogram
+
+```{r}
+png('periodogram.png')
+par(mfcol = c(1,2))
+p1 <- periodogram(Pre)
+p <- periodogram(Temp)
+dev.off()
+```
+
+## converting the frequency to periods
+```{r}
+png('frequency_gram.png')
+period_Temp <- 1/p$freq
+period_Prep <- 1/p1$freq
+par(mfcol = c(1,2))
+plot(period_Temp, p$spec, type = 'b', xlim = c(2,13), xlab = 'period', ylab = 'periodogram',
+     main = 'Temperature')
+
+plot(period_Prep, p1$spec, type = 'b', xlim = c(2,13), xlab = 'period', ylab = 'periodogram',
+     main = 'Precipitation')
+dev.off()
+```
+# Getting the 6-Moving average 
+```{r}
+Average <- rollmean(Pre, k = 6)
+p <- periodogram(Average)
+period_Prep <- 1/p$freq
+plot(period_Prep, p$spec, type = 'b', xlim = c(2,13), xlab = 'Period', ylab = 'Periodogram', main = '6-Moving Average Precipitation')
+```
+# Save the plot
+```{r}
+png('Average_plot.png')
+plot(period_Prep, p$spec, type = 'b', xlim = c(2,13), xlab = 'Period', ylab = 'Periodogram', main = '6-Moving Average Precipitation')
+dev.off()
+```
+### Question 2 : 
+```{r}
+## Wavelet
+   
+
+#par(oma=c(0, 0, 0, 1), mar=c(5, 4, 4, 5) + 0.1)
+yy=plot(wavelet1,  plot.cb = TRUE,lwd.coi = 1,col.coi="white",alpha.coi=0.5,col.sig="black",
+        lwd.sig = 2, ncol = 768, tol = 0.95, plot.phase=F,ylab="Period(Year)", xlab = "Time(Year)",
+        main='Temperature')
+dev.off()
+
+
+# wavelet coherence calculation
+wcoh=wtc(cbind(timelong,Pre),cbind(timelong,Temp),dj=0.1,mother="morlet",max.scale=16) 
+
+## plot of wavelet coherence
+png('wavelet_coherence.png')
+par(mfcol = c(1,1))
+par(oma=c(0, 0, 0, 1), mar=c(5, 4, 4, 5) + 0.1) #To allow for colour bar to be included
+plot(wcoh,  plot.cb = TRUE,lwd.coi = 1,col.coi="white",alpha.coi=0.5,col.sig="black",
+     lwd.sig = 2, ncol = 768, tol = 0.95, plot.phase=T,ylab="Period(Year)", xlab = "Time(Year)",
+     main='Wavelet Coherence') #plotting
+dev.off()
+```
